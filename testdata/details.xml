@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Devices-Detail-Response xmlns="http://www.embeddeddatasystems.com/schema/owserver"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<PollCount>5575430</PollCount>
+	<DevicesConnected>2</DevicesConnected>
+	<LoopTime>1.114</LoopTime>
+	<DevicesConnectedChannel1>2</DevicesConnectedChannel1>
+	<DevicesConnectedChannel2>0</DevicesConnectedChannel2>
+	<DevicesConnectedChannel3>0</DevicesConnectedChannel3>
+	<DataErrorsChannel1>250</DataErrorsChannel1>
+	<DataErrorsChannel2>0</DataErrorsChannel2>
+	<DataErrorsChannel3>0</DataErrorsChannel3>
+	<VoltageChannel1>4.56</VoltageChannel1>
+	<VoltageChannel2>4.55</VoltageChannel2>
+	<VoltageChannel3>4.56</VoltageChannel3>
+	<VoltagePower>4.78</VoltagePower>
+	<DeviceName>OWServer_v2-Enet</DeviceName>
+	<HostName>EDSOWSERVER2</HostName>
+	<MACAddress>00:04:A3:7A:F0:61</MACAddress>
+	<owd_DS18B20 Description="Programmable resolution thermometer">
+		<Name>DS18B20</Name>
+		<Family>28</Family>
+		<ROMId>81000003994A2528</ROMId>
+		<Health>7</Health>
+		<Channel>1</Channel>
+		<RawData>DF004B467FFF01103400000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000</RawData>
+		<PrimaryValue>13.9375 Deg C</PrimaryValue>
+		<Temperature Units="Centigrade">13.9375</Temperature>
+		<UserByte1 Writable="True">75</UserByte1>
+		<UserByte2 Writable="True">70</UserByte2>
+		<Resolution>12</Resolution>
+		<PowerSource>0</PowerSource>
+	</owd_DS18B20>
+	<owd_DS2423 Description="RAM with counters">
+		<Name>DS2423</Name>
+		<Family>1D</Family>
+		<ROMId>FC0000000F8AF81D</ROMId>
+		<Health>7</Health>
+		<Channel>1</Channel>
+		<RawData>1302DC0200000000F4430000000000000000C6AD0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000</RawData>
+		<PrimaryValue>47972883, 0</PrimaryValue>
+		<Counter_A>47972883</Counter_A>
+		<Counter_B>0</Counter_B>
+	</owd_DS2423>
+</Devices-Detail-Response>

@@ -35,13 +35,6 @@ func main() {
 		intv: interval,
 	}
 
-	elapsed := time.Now().UnixNano() % interval.Nanoseconds()
-	sleep := time.Duration(interval.Nanoseconds() - elapsed)
-	if debug {
-		log.Println("Waiting", sleep, "to get in step")
-	}
-	time.Sleep(sleep)
-
 	srv := suture.NewSimple("main")
 	srv.Add(pSrv)
 	srv.Add(rSrv)

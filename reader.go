@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -32,11 +33,30 @@ func (r *reader) Serve() {
 	log.Println(r, "starting")
 	defer log.Println(r, "exiting")
 
-	r.out <- parseURL(r.url)
+	elapsed := time.Now().UnixNano() % r.intv.Nanoseconds()
+	sleep := time.Duration(r.intv.Nanoseconds() - elapsed)
+	if debug {
+		log.Println("Waiting", sleep, "to get in step")
+	}
+	time.Sleep(sleep)
+
+	dp, err := parseURL(r.url)
+	if err != nil {
+		log.Println(err, "(fatal)")
+		return
+	}
+	r.out <- dp
+
 	for {
 		select {
 		case <-ticker.C:
-			r.out <- parseURL(r.url)
+			dp, err := parseURL(r.url)
+			if err != nil {
+				log.Println(err, "(fatal)")
+				return
+			}
+			r.out <- dp
+
 		case <-r.stop:
 			return
 		}
@@ -53,13 +73,23 @@ func (r *reader) String() string {
 	return fmt.Sprintf("reader@%p", r)
 }
 
-func parseURL(url string) datapoint {
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Fatal(err)
+func parseURL(url string) (datapoint, error) {
+	var err error
+	var resp *http.Response
+	for i := 0; i < 5; i++ {
+		resp, err = http.Get(url)
+		if err == nil && resp.StatusCode != 200 {
+			err = errors.New(resp.Status)
+		}
+		if err != nil {
+			log.Println("get:", err, "(retrying)")
+			time.Sleep(time.Duration(i+1) * time.Second)
+			continue
+		}
+		defer resp.Body.Close()
+		return parseXML(resp.Body), nil
 	}
-	defer resp.Body.Close()
-	return parseXML(resp.Body)
+	return datapoint{}, err
 }
 
 func parseXML(fd io.Reader) datapoint {

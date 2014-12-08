@@ -74,10 +74,14 @@ func (r *reader) String() string {
 }
 
 func parseURL(url string) (datapoint, error) {
+	client := http.Client{
+		Timeout: 30 * time.Second,
+	}
+
 	var err error
 	var resp *http.Response
 	for i := 0; i < 5; i++ {
-		resp, err = http.Get(url)
+		resp, err = client.Get(url)
 		if err == nil && resp.StatusCode != 200 {
 			err = errors.New(resp.Status)
 		}

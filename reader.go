@@ -27,29 +27,15 @@ func (r *reader) Serve() {
 	r.stop = make(chan struct{})
 	r.lock.Unlock()
 
-	ticker := time.NewTicker(r.intv)
-	defer ticker.Stop()
-
 	log.Println(r, "starting")
 	defer log.Println(r, "exiting")
 
-	elapsed := time.Now().UnixNano() % r.intv.Nanoseconds()
-	sleep := time.Duration(r.intv.Nanoseconds() - elapsed)
-	if debug {
-		log.Println("Waiting", sleep, "to get in step")
-	}
-	time.Sleep(sleep)
-
-	dp, err := parseURL(r.url)
-	if err != nil {
-		log.Println(err, "(fatal)")
-		return
-	}
-	r.out <- dp
+	t := newSyncedTicker(r.intv)
+	defer t.Stop()
 
 	for {
 		select {
-		case <-ticker.C:
+		case <-t.C:
 			dp, err := parseURL(r.url)
 			if err != nil {
 				log.Println(err, "(fatal)")
@@ -128,4 +114,38 @@ func parseXML(fd io.Reader) datapoint {
 	}
 
 	return result
+}
+
+type syncedTicker struct {
+	intv time.Duration
+	stop chan struct{}
+	C    chan time.Time
+}
+
+func newSyncedTicker(intv time.Duration) *syncedTicker {
+	t := &syncedTicker{
+		intv: intv,
+		stop: make(chan struct{}),
+		C:    make(chan time.Time),
+	}
+	go t.tick()
+	return t
+}
+
+func (t *syncedTicker) Stop() {
+	close(t.stop)
+}
+
+func (t *syncedTicker) tick() {
+	for {
+		now := time.Now()
+		next := now.Truncate(t.intv).Add(t.intv)
+		sleep := next.Sub(now)
+		time.Sleep(sleep)
+		select {
+		case t.C <- time.Now():
+		case <-t.stop:
+			return
+		}
+	}
 }

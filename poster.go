@@ -1,13 +1,13 @@
 package main
 
 import (
-	"bytes"
-	"encoding/json"
-	"errors"
+	"database/sql"
 	"fmt"
 	"log"
-	"net/http"
 	"sync"
+	"time"
+
+	_ "github.com/lib/pq"
 )
 
 type post struct {
@@ -17,8 +17,9 @@ type post struct {
 }
 
 type poster struct {
-	url string
-	in  <-chan datapoint
+	connstring string
+	db         *sql.DB
+	in         <-chan datapoint
 
 	stop chan struct{}
 	lock sync.Mutex
@@ -31,6 +32,13 @@ func (p *poster) Serve() {
 
 	log.Println(p, "starting")
 	defer log.Println(p, "exiting")
+
+	db, err := sql.Open("postgres", p.connstring)
+	if err != nil {
+		log.Println("db:", err)
+		return
+	}
+	p.db = db
 
 	var buffer []datapoint
 	for {
@@ -64,30 +72,18 @@ func (p *poster) String() string {
 }
 
 func (p *poster) post(buffer []datapoint) error {
-	points := post{
-		Name:    "env",
-		Columns: []string{"time", "temperature", "wattHours"},
+	tx, err := p.db.Begin()
+	if err != nil {
+		return err
 	}
+
 	for _, dp := range buffer {
-		points.Points = append(points.Points, []interface{}{dp.time.Unix() * 1000, dp.temperature, dp.wattHours})
+		_, err := tx.Exec("INSERT INTO env (ts, wh, degc) VALUES ($1, $2, $3)", dp.time.Truncate(time.Minute), dp.wattHours, dp.temperature)
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
 	}
 
-	postData, err := json.Marshal([]post{points})
-	if err != nil {
-		return err
-	}
-	if debug {
-		log.Printf("%s", postData)
-	}
-
-	resp, err := http.Post(p.url, "application/json", bytes.NewBuffer(postData))
-	if err != nil {
-		return err
-	}
-	resp.Body.Close()
-	if resp.StatusCode != 200 {
-		return errors.New(resp.Status)
-	}
-
-	return nil
+	return tx.Commit()
 }

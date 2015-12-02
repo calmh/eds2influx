@@ -22,12 +22,12 @@ func main() {
 	log.SetOutput(os.Stdout)
 
 	edsURL := os.Getenv("EDSURL")
-	dbURL := os.Getenv("INFLUXURL")
+	connstring := os.Getenv("CONNSTRING") // postgres://pqgotest:password@localhost/pqgotest?sslmode=verify-full
 
 	results := make(chan datapoint)
 	pSrv := &poster{
-		url: dbURL,
-		in:  results,
+		connstring: connstring,
+		in:         results,
 	}
 	rSrv := &reader{
 		url:  edsURL,
